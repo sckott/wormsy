@@ -69,8 +69,9 @@ ds.once('connected', function () {
 });
 
 app.start = function () {
-  return app.listen(3000, function () {
-    var baseUrl = 'http://127.0.0.1:3000';
+  return app.listen(app.get('port'), function () {
+    // var baseUrl = 'http://127.0.0.1:3000';
+    var baseUrl = 'http://' + app.get('host') + ':' + app.get('port');
     app.emit('started', baseUrl);
     console.log('LoopBack server listening @ %s%s', baseUrl, '/');
   });
