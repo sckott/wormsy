@@ -5,13 +5,11 @@ var app = module.exports = loopback();
 
 app.set('restApiRoot', '/api');
 
-var ds = loopback.createDataSource('soap',
-  {
-    connector: require('../index'),
-    remotingEnabled: true,
-    // wsdl: 'http://wsf.cdyne.com/WeatherWS/Weather.asmx?WSDL' // The url to WSDL
-    wsdl: path.join(__dirname, './worms.wsdl')
-  });
+var ds = loopback.createDataSource('soap', {
+  connector: require('../index'),
+  remotingEnabled: true,
+  wsdl: path.join(__dirname, './worms.wsdl')
+});
 
 // Unfortunately, the methods from the connector are mixed in asynchronously
 // This is a hack to wait for the methods to be injected
@@ -24,8 +22,20 @@ ds.once('connected', function () {
   WormsService.children = function (id, cb) {
     WormsService.getAphiaChildrenByID({AphiaID: id || '106135'}, function (err, response) {
       console.log('children: %j', response);
-      var result = response;
-      cb(err, result);
+      // var result = response.getAphiaChildrenByID;
+      var result = !err ?
+        response.return.item : [];
+      function GetVals(x){
+        var vals = {}
+        Object.keys(x).forEach(function (key) {
+          var value = x[key].$value
+          vals[key] = value;
+        });
+        return(vals);
+      }
+      var result2 = result.map(GetVals)
+      // var result = response;
+      cb(err, result2);
     });
   };
 
@@ -69,10 +79,19 @@ ds.once('connected', function () {
 });
 
 app.start = function () {
-  return app.listen(app.get('port'), function () {
-    // var baseUrl = 'http://127.0.0.1:3000';
-    var baseUrl = 'http://' + app.get('host') + ':' + app.get('port');
+  return app.listen(3000, function () {
+    var baseUrl = 'http://127.0.0.1:3000';
     app.emit('started', baseUrl);
     console.log('LoopBack server listening @ %s%s', baseUrl, '/');
   });
 };
+
+
+// app.start = function () {
+//   return app.listen(app.get('port'), function () {
+//     // var baseUrl = 'http://127.0.0.1:3000';
+//     var baseUrl = 'http://' + app.get('host') + ':' + app.get('port');
+//     app.emit('started', baseUrl);
+//     console.log('LoopBack server listening @ %s%s', baseUrl, '/');
+//   });
+// };
